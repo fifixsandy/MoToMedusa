@@ -1,0 +1,20 @@
+/.vscode
+
+# Libraries
+/lib
+
+# Build files
+MEDUSA
+/obj
+
+/doc
+
+# Program output
+*.svg
+*.pdf
+*.dot
+res-vars.txt
+
+# For debug purposes
+gmon.out
+/logs
