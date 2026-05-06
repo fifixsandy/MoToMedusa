@@ -10,28 +10,15 @@
 #ifndef GATES_H
 #define GATES_H
 
-/**
- * Permutation based implementation of the X gate on the given MTBDD.
- */
-//TASK_DECL_2(MTBDD, _gate_x, MTBDD, uint64_t);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-//LACE_TYPEDEF_CB(MTBDD, mtbdd_apply_gate_op, MTBDD, MTBDD, uint32_t);
-//TASK_DECL_3(MTBDD, mtbdd_apply_gate, MTBDD, mtbdd_apply_gate_op, uint32_t);
 /**
  * Apply a gate operation <op> to <dd>. Custom apply needed because xt nodes may not be present in the reduced <dd>.
  * Otherwise it's basically the standard uapply.
  */
-//#define my_mtbdd_apply_gate(dd, op, param) RUN(mtbdd_apply_gate, dd, op, param)
 qBDD interface_gate_x(size_t xt, qBDD low, qBDD high);
-//TASK_DECL_5(MTBDD, mtbdd_apply_cgate, MTBDD, mtbdd_apply_gate_op, uint32_t, uint32_t, bool);
-/**
- * Apply a controlled gate rotation operation <op> to <dd>. Custom apply needed because xc, xt nodes may not be present in the reduced <dd>.
- * Otherwise it's basically the standard uapply. Assumes xc < xt.
- * 
- * Note that in the current implementation will work only with a single controlled rotation operation because
- * of insufficient number of arguments for Sylvan caching.
- */
-//#define my_mtbdd_apply_cgate(dd, op, xc, xt) RUN(mtbdd_apply_cgate, dd, op, xc, xt, false)
 
 /**
  * Returns the probability the given qubit's state will be 1.
@@ -99,6 +86,16 @@ void gate_s(qBDD *p_t, uint32_t xt);
 void gate_t(qBDD *p_t, uint32_t xt);
 
 /**
+ * Apply quantum gate Tdg on the state vector.
+ * 
+ * @param p_t pointer to an MTBDD
+ * 
+ * @param xt target qubit index
+ * 
+ */
+void gate_tdg(qBDD *p_t, uint32_t xt);
+
+/**
  * Function implementing quantum Hadamard gate for a given MTBDD.
  * 
  * @param p_t pointer to an MTBDD
@@ -124,6 +121,41 @@ void gate_rx_pihalf(qBDD *p_t, uint32_t xt);
  * @param xt target qubit index
  */
 void gate_ry_pihalf(qBDD *p_t, uint32_t xt);
+
+
+/**
+ * Function implementing quantum Rx(theta) gate for a given MTBDD.
+ * 
+ * @param p_t pointer to an MTBDD
+ * 
+ * @param xt target qubit index
+ * 
+ * @param theta rotation angle
+ */
+void gate_rx(qBDD *p_t, uint32_t xt, double theta);
+
+/**
+ * Function implementing quantum Ry(theta) gate for a given MTBDD.
+ * 
+ * @param p_t pointer to an MTBDD
+ * 
+ * @param xt target qubit index
+ * 
+ * @param theta rotation angle
+ */
+void gate_ry(qBDD *p_t, uint32_t xt, double theta);
+
+
+/**
+ * Function implementing quantum Rz(theta) gate for a given MTBDD.
+ * 
+ * @param p_t pointer to an MTBDD
+ * 
+ * @param xt target qubit index
+ * 
+ * @param theta rotation angle
+ */
+void gate_rz(qBDD *p_t, uint32_t xt, double theta);
 
 /**
  * Function implementing quantum Controlled NOT gate for a given MTBDD.
@@ -170,5 +202,8 @@ void gate_toffoli(qBDD *p_t, uint32_t xt, uint32_t xc1, uint32_t xc2);
  */
 void gate_mcx(qBDD *p_t, qparam_list_t *qparams);
 
+#endif
+#ifdef __cplusplus
+}
 #endif
 /* end of "gates.h" */

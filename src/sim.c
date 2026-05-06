@@ -11,6 +11,8 @@
 #include "htab.h"
 #include "error.h"
 #include "interface.h"
+#include <assert.h>
+#include "norm_track.h"
 
 /// Max. supported length of the string with classical bit register identifier (includes '\0')
 #define BIT_REG_ID_MAX_LEN (30+1)
@@ -43,15 +45,16 @@ void init_sim_info(sim_info_t *i)
  */
 static void sim_info_times_addsize(sim_info_t *i, int inc)
 {
-    size_t size = inc;
+    size_t size;
     if (i->t_len == 0) {
+        size = (size_t)inc;
         i->t_el_loop = my_malloc(sizeof(double) * size);
         i->t_el_eval = my_malloc(sizeof(double) * size);
     }
     else {
-        size += inc;
+        size = i->t_len + (size_t)inc;
         i->t_el_loop = my_realloc(i->t_el_loop, sizeof(double) * size);
-        i->t_el_eval = my_realloc(i->t_el_loop, sizeof(double) * size);
+        i->t_el_eval = my_realloc(i->t_el_eval, sizeof(double) * size);
     }
     i->t_len = size;
 }
@@ -302,6 +305,7 @@ bool sim_file(FILE *in, qBDD *circ, const sim_flags_t *flags, sim_info_t *info)
 
             uint32_t n = get_q_num(in);
             info->n_qubits = (int)n;
+            g_num_qubits = (int)n; // for norm tracking
             if (n_bits != 0 && n != n_bits) { // != 0 check because maybe it's not initialized yet
                 error_exit("Bit register size is different than the size of the qubit register - currently not supported.\n");
             }
@@ -376,6 +380,12 @@ bool sim_file(FILE *in, qBDD *circ, const sim_flags_t *flags, sim_info_t *info)
                         info->t_el_loop[info->n_loops] = get_time_el(t_loop_start, t_loop_finish);
                         info->t_el_eval[info->n_loops] = get_time_el(t_eval_start, t_loop_finish);
                         info->n_loops++;
+
+                        if (g_norm_track_enabled) {
+                            char label[32];
+                            snprintf(label, sizeof(label), "LOOP (%lu iters)", (unsigned long)iters);
+                            norm_track_record(label, *circ, g_num_qubits);
+                        }
                     }
                     else {
                         if (fsetpos(in, &loop_start) != 0) {
@@ -427,6 +437,10 @@ bool sim_file(FILE *in, qBDD *circ, const sim_flags_t *flags, sim_info_t *info)
                 uint32_t qt = get_q_num(in);
                 (flags->opt_symb && is_loop)? gate_symb_t(&symbc.val, qt) : gate_t(circ, qt);
             }
+            else if (strcasecmp(cmd, "tdg") == 0) {
+                uint32_t qt = get_q_num(in);
+                (flags->opt_symb && is_loop)? gate_symb_tdg(&symbc.val, qt) : gate_tdg(circ, qt);
+            }
             else if (strcasecmp(cmd, "rx(pi/2)") == 0) {
                 uint32_t qt = get_q_num(in);
                 (flags->opt_symb && is_loop)? gate_symb_rx_pihalf(&symbc.val, qt) : gate_rx_pihalf(circ, qt);
@@ -434,6 +448,30 @@ bool sim_file(FILE *in, qBDD *circ, const sim_flags_t *flags, sim_info_t *info)
             else if (strcasecmp(cmd, "ry(pi/2)") == 0) {
                 uint32_t qt = get_q_num(in);
                 (flags->opt_symb && is_loop)? gate_symb_ry_pihalf(&symbc.val, qt) : gate_ry_pihalf(circ, qt);
+            }
+            else if (strncasecmp(cmd, "rx(", 3) == 0 && strcasecmp(cmd, "rx(pi/2)") != 0) {
+                double angle;
+                if (sscanf(cmd + 3, "%lf", &angle) != 1) {
+                    error_exit("Invalid rx angle in command '%s'.\n", cmd);
+                }
+                uint32_t qt = get_q_num(in);
+                gate_rx(circ, qt, angle);
+            }
+            else if (strncasecmp(cmd, "ry(", 3) == 0 && strcasecmp(cmd, "ry(pi/2)") != 0) {
+                double angle;
+                if (sscanf(cmd + 3, "%lf", &angle) != 1) {
+                    error_exit("Invalid ry angle in command '%s'.\n", cmd);
+                }
+                uint32_t qt = get_q_num(in);
+                gate_ry(circ, qt, angle);
+            }
+            else if (strncasecmp(cmd, "rz(", 3) == 0) {
+                double angle;
+                if (sscanf(cmd + 3, "%lf", &angle) != 1) {
+                    error_exit("Invalid rz angle in command '%s'.\n", cmd);
+                }
+                uint32_t qt = get_q_num(in);
+                gate_rz(circ, qt, angle);
             }
             else if (strcasecmp(cmd, "cx") == 0) {
                 uint32_t qc = get_q_num(in);

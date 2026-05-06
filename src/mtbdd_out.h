@@ -17,7 +17,7 @@
 
 /// Format string for the variable name
 #define VAR_NAME_FMT "large-number[%ld]"
-typedef mpz_t coef_t;
+typedef leaf_primitive_t coef_t;
 
 /// Type for saving and using the variable to value mapping for the separate output of large numbers
 typedef struct lnum_map {

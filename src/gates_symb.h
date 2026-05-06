@@ -8,7 +8,9 @@
 
 #ifndef GATES_SYMB_H
 #define GATES_SYMB_H
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 /**
  * Apply gate X on the symbolic state vector.
  * 
@@ -58,6 +60,16 @@ void gate_symb_s(qBDD *p_t, uint32_t xt);
  * 
  */
 void gate_symb_t(qBDD *p_t, uint32_t xt);
+
+/**
+ * Apply gate Tdg on the symbolic state vector.
+ * 
+ * @param p_t pointer to a symbolic value MTBDD
+ * 
+ * @param xt target qubit index
+ * 
+ */
+void gate_symb_tdg(qBDD *p_t, uint32_t xt);
 
 /**
  * Apply Hadamard gate on the symbolic state vector.
@@ -130,5 +142,8 @@ void gate_symb_toffoli(qBDD *p_t, uint32_t xt, uint32_t xc1, uint32_t xc2);
  */
 void gate_symb_mcx(qBDD *p_t, qparam_list_t *qparams);
 
+#endif
+#ifdef __cplusplus
+}
 #endif
 /* end of "gates_symb.h" */

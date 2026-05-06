@@ -3,7 +3,7 @@
  * @brief Symbolic simulation conversion from/to regular simulation and other symbolic sim. utilities
  */
 
-#include <sylvan.h>
+//#include <sylvan.h>
 #include <stdint.h>
 #include "mtbdd_symb_map.h"
 #include "mtbdd.h"
@@ -30,7 +30,7 @@ typedef symexp_list_t* upd_elem_t;
 /// Type for elements of the refined list (old_var -> new_var mapping)
 typedef struct ref_elem {
     vars_t old;
-    vars_t new;
+    vars_t new_elem;
     struct ref_elem *next;
 } ref_elem_t;
 
@@ -55,14 +55,14 @@ typedef struct rdata {
 } rdata_t;
 
 /**
- * Function for Sylvan setup for symbolic simulation.
+ * Function for backend setup for symbolic simulation.
  */
-void init_sylvan_symb();
+void init_symb_backend();
 
 /**
  * Creates an symbolic MTBDD from the given MTBDD and returns the mapping of variables to their values
  */
-void symb_init(MTBDD *circ, mtbdd_symb_t *symbc);
+void symb_init(qBDD *circ, mtbdd_symb_t *symbc);
 
 /**
  * Creates and initializes refine data
@@ -84,6 +84,10 @@ bool symb_refine(mtbdd_symb_t *symbc, rdata_t *rdata);
  * Updates the circuits MTBDD according to the symbolic MTBDD, variable mapping and the number of iterations
  */
 void symb_eval(qBDD *circ,  mtbdd_symb_t *symbc, uint64_t iters, rdata_t *rdata);
+
+vars_t refine_var_check(vars_t var, symexp_list_t *data, rdata_t *rd);
+
+extern mpz_t globalSquareRootCoeffSymb;
 
 #endif
 /* end of "symb_utils.h" */
